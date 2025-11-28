@@ -4,14 +4,15 @@ Herramientas para hacer backup y restaurar configuraciones y extensiones de Curs
 
 ## 📦 Contenido
 
-- `backup_cursor.sh` - Script para crear backups de configuraciones y extensiones
+- `backup_cursor.sh` - Script para crear backups completos de configuraciones y extensiones
+- `backup_cursor_public.sh` - Script para crear backups públicos (sin información sensible)
 - `restore_cursor.sh` - Script para restaurar desde un backup
 - `install.sh` - Script de instalación para usar los comandos desde cualquier ubicación
 - `README.md` - Esta documentación
 
 ## 🔌 Instalación
 
-Para poder usar los comandos `cursor-backup` y `cursor-restore` desde cualquier ubicación:
+Para poder usar los comandos `cursor-backup`, `cursor-backup-public` y `cursor-restore` desde cualquier ubicación:
 
 ```bash
 ./install.sh
@@ -23,11 +24,11 @@ Esto creará enlaces simbólicos en `/usr/local/bin` o `~/bin` (según permisos 
 
 ## 🚀 Uso Rápido
 
-### Crear un Backup
+### Crear un Backup Completo
 
 **Usando el comando instalado (recomendado):**
 ```bash
-cursor-backup                    # Backup en el directorio actual
+cursor-backup                    # Backup completo en el directorio actual
 cursor-backup ~/Documentos/backups  # Backup en ubicación personalizada
 ```
 
@@ -36,7 +37,30 @@ cursor-backup ~/Documentos/backups  # Backup en ubicación personalizada
 ./backup_cursor.sh [directorio_destino]
 ```
 
-El backup se guardará en el directorio actual (o en la ubicación especificada) con un nombre que incluye fecha y hora.
+El backup completo incluye todas las configuraciones y extensiones completas.
+
+### Crear un Backup Público (Sin Información Sensible)
+
+**Usando el comando instalado:**
+```bash
+cursor-backup-public                    # Backup público en el directorio actual
+cursor-backup-public ~/Documentos/backups  # Backup público en ubicación personalizada
+```
+
+**O ejecutando el script directamente:**
+```bash
+./backup_cursor_public.sh [directorio_destino]
+```
+
+El backup público incluye:
+- ✅ Configuraciones básicas (settings.json, keybindings.json, snippets, tasks.json)
+- ✅ Listado de extensiones instaladas (nombre, versión, descripción)
+- ❌ NO incluye extensiones completas
+- ❌ NO incluye globalStorage (tokens, credenciales)
+- ❌ NO incluye workspaceStorage (datos sensibles de proyectos)
+- ❌ NO incluye bases de datos de estado
+
+**Ideal para compartir configuraciones sin exponer información sensible.**
 
 ### Restaurar un Backup
 
@@ -54,15 +78,36 @@ cursor-restore ~/cursor_backups/cursor_backup_YYYYMMDD_HHMMSS.tar.gz
 
 ## 📋 Qué se respalda
 
-### Configuraciones
+### Backup Completo (`cursor-backup`)
+
+**Configuraciones:**
 - `settings.json` - Configuraciones del editor
 - `keybindings.json` - Atajos de teclado personalizados
 - `snippets/` - Fragmentos de código personalizados
 - `globalStorage/` - Almacenamiento global de extensiones
 - `workspaceStorage/` - Almacenamiento de espacios de trabajo
+- `tasks.json` - Tareas personalizadas
 
-### Extensiones
-- Todas las extensiones instaladas con sus configuraciones
+**Extensiones:**
+- Todas las extensiones instaladas completas con sus configuraciones
+
+### Backup Público (`cursor-backup-public`)
+
+**Configuraciones (solo archivos seguros):**
+- `settings.json` - Configuraciones del editor
+- `keybindings.json` - Atajos de teclado personalizados
+- `snippets/` - Fragmentos de código personalizados
+- `tasks.json` - Tareas personalizadas
+
+**Extensiones:**
+- Solo listado de extensiones (nombre, editor, versión, descripción)
+- NO incluye las extensiones completas
+
+**NO incluye (por seguridad):**
+- `globalStorage/` - Puede contener tokens y credenciales
+- `workspaceStorage/` - Puede contener datos sensibles de proyectos
+- Bases de datos de estado
+- Cualquier otra información sensible
 
 ## 📁 Estructura de Backups
 
