@@ -16,14 +16,31 @@ NC='\033[0m' # No Color
 CURSOR_USER_DIR="$HOME/Library/Application Support/Cursor/User"
 CURSOR_EXTENSIONS_DIR="$HOME/.cursor/extensions"
 
-# Directorio de backup base
-BACKUP_BASE_DIR="$HOME/cursor_backups"
+# Directorio de backup base (puede ser especificado como argumento)
+if [ -n "$1" ]; then
+    BACKUP_BASE_DIR="$1"
+else
+    BACKUP_BASE_DIR="$(pwd)"
+fi
+
+# Validar que el directorio de destino existe o puede ser creado
+if [ ! -d "$BACKUP_BASE_DIR" ]; then
+    echo -e "${BLUE}Creando directorio de destino: $BACKUP_BASE_DIR${NC}"
+    mkdir -p "$BACKUP_BASE_DIR" || {
+        echo -e "${YELLOW}Error: No se pudo crear el directorio de destino: $BACKUP_BASE_DIR${NC}"
+        exit 1
+    }
+fi
+
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 BACKUP_DIR="$BACKUP_BASE_DIR/cursor_backup_$TIMESTAMP"
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Backup de Cursor${NC}"
 echo -e "${BLUE}========================================${NC}"
+echo ""
+echo -e "Uso: $0 [directorio_destino]"
+echo -e "  Si no se especifica directorio_destino, se usará el directorio actual: $(pwd)"
 echo ""
 
 # Verificar que los directorios existen
@@ -102,10 +119,22 @@ cd "$BACKUP_BASE_DIR"
 tar -czf "$ARCHIVE_NAME" "cursor_backup_$TIMESTAMP"
 echo -e "${GREEN}✓${NC} Backup comprimido: $ARCHIVE_NAME"
 
-# Mostrar tamaño del archivo comprimido
-ARCHIVE_SIZE=$(du -sh "$ARCHIVE_NAME" | cut -f1)
-echo -e "  Tamaño del archivo: $ARCHIVE_SIZE"
-echo ""
+# Verificar que el archivo se creó correctamente antes de eliminar la carpeta
+if [ -f "$BACKUP_BASE_DIR/$ARCHIVE_NAME" ]; then
+    # Mostrar tamaño del archivo comprimido
+    ARCHIVE_SIZE=$(du -sh "$ARCHIVE_NAME" | cut -f1)
+    echo -e "  Tamaño del archivo: $ARCHIVE_SIZE"
+    echo ""
+    
+    # Eliminar la carpeta temporal
+    echo -e "${BLUE}Eliminando carpeta temporal...${NC}"
+    rm -rf "$BACKUP_DIR"
+    echo -e "${GREEN}✓${NC} Carpeta temporal eliminada"
+    echo ""
+else
+    echo -e "${YELLOW}⚠${NC} Error al crear el archivo comprimido, se mantiene la carpeta temporal"
+    echo ""
+fi
 
 # Resumen final
 echo -e "${BLUE}========================================${NC}"
@@ -113,7 +142,6 @@ echo -e "${GREEN}✓ Backup completado exitosamente${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo ""
 echo -e "Ubicación del backup:"
-echo -e "  Directorio: ${GREEN}$BACKUP_DIR${NC}"
 echo -e "  Archivo comprimido: ${GREEN}$BACKUP_BASE_DIR/$ARCHIVE_NAME${NC}"
 echo ""
 echo -e "Para restaurar, descomprime el archivo .tar.gz y copia los contenidos"
