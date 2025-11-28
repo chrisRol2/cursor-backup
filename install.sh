@@ -19,34 +19,18 @@ echo ""
 
 # Obtener el directorio donde está este script
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKUP_SCRIPT="$SCRIPT_DIR/backup_cursor.sh"
-BACKUP_PUBLIC_SCRIPT="$SCRIPT_DIR/backup_cursor_public.sh"
-RESTORE_SCRIPT="$SCRIPT_DIR/restore_cursor.sh"
+CURSOR_BACKUP_SCRIPT="$SCRIPT_DIR/cursor-backup"
 
-# Verificar que los scripts existen
-if [ ! -f "$BACKUP_SCRIPT" ]; then
-    echo -e "${RED}Error: No se encontró backup_cursor.sh${NC}"
+# Verificar que el script existe
+if [ ! -f "$CURSOR_BACKUP_SCRIPT" ]; then
+    echo -e "${RED}Error: No se encontró cursor-backup${NC}"
     exit 1
 fi
 
-if [ ! -f "$BACKUP_PUBLIC_SCRIPT" ]; then
-    echo -e "${YELLOW}Advertencia: No se encontró backup_cursor_public.sh${NC}"
-    BACKUP_PUBLIC_SCRIPT=""
-fi
-
-if [ ! -f "$RESTORE_SCRIPT" ]; then
-    echo -e "${RED}Error: No se encontró restore_cursor.sh${NC}"
-    exit 1
-fi
-
-# Hacer los scripts ejecutables
-echo -e "${BLUE}Haciendo scripts ejecutables...${NC}"
-chmod +x "$BACKUP_SCRIPT"
-chmod +x "$RESTORE_SCRIPT"
-if [ -n "$BACKUP_PUBLIC_SCRIPT" ]; then
-    chmod +x "$BACKUP_PUBLIC_SCRIPT"
-fi
-echo -e "${GREEN}✓${NC} Scripts ahora son ejecutables"
+# Hacer el script ejecutable
+echo -e "${BLUE}Haciendo script ejecutable...${NC}"
+chmod +x "$CURSOR_BACKUP_SCRIPT"
+echo -e "${GREEN}✓${NC} Script ahora es ejecutable"
 echo ""
 
 # Determinar dónde instalar los comandos
@@ -76,29 +60,17 @@ else
     fi
 fi
 
-# Crear enlaces simbólicos
+# Crear enlace simbólico
 if [ "$USE_SUDO" = true ]; then
-    echo -e "${BLUE}Creando enlaces simbólicos (requiere contraseña)...${NC}"
-    sudo ln -sf "$BACKUP_SCRIPT" "$INSTALL_DIR/cursor-backup"
-    sudo ln -sf "$RESTORE_SCRIPT" "$INSTALL_DIR/cursor-restore"
-    if [ -n "$BACKUP_PUBLIC_SCRIPT" ]; then
-        sudo ln -sf "$BACKUP_PUBLIC_SCRIPT" "$INSTALL_DIR/cursor-backup-public"
-    fi
+    echo -e "${BLUE}Creando enlace simbólico (requiere contraseña)...${NC}"
+    sudo ln -sf "$CURSOR_BACKUP_SCRIPT" "$INSTALL_DIR/cursor-backup"
 else
-    echo -e "${BLUE}Creando enlaces simbólicos...${NC}"
-    ln -sf "$BACKUP_SCRIPT" "$INSTALL_DIR/cursor-backup"
-    ln -sf "$RESTORE_SCRIPT" "$INSTALL_DIR/cursor-restore"
-    if [ -n "$BACKUP_PUBLIC_SCRIPT" ]; then
-        ln -sf "$BACKUP_PUBLIC_SCRIPT" "$INSTALL_DIR/cursor-backup-public"
-    fi
+    echo -e "${BLUE}Creando enlace simbólico...${NC}"
+    ln -sf "$CURSOR_BACKUP_SCRIPT" "$INSTALL_DIR/cursor-backup"
 fi
 
-echo -e "${GREEN}✓${NC} Enlaces creados:"
-echo -e "  ${GREEN}cursor-backup${NC} -> $BACKUP_SCRIPT"
-echo -e "  ${GREEN}cursor-restore${NC} -> $RESTORE_SCRIPT"
-if [ -n "$BACKUP_PUBLIC_SCRIPT" ]; then
-    echo -e "  ${GREEN}cursor-backup-public${NC} -> $BACKUP_PUBLIC_SCRIPT"
-fi
+echo -e "${GREEN}✓${NC} Enlace creado:"
+echo -e "  ${GREEN}cursor-backup${NC} -> $CURSOR_BACKUP_SCRIPT"
 echo ""
 
 # Verificar instalación
@@ -106,15 +78,26 @@ if command -v cursor-backup &> /dev/null; then
     echo -e "${GREEN}✓${NC} Instalación completada exitosamente"
     echo ""
     echo -e "${BLUE}Uso:${NC}"
-    echo -e "  ${GREEN}cursor-backup${NC} [directorio_destino]"
-    echo -e "  ${GREEN}cursor-backup-public${NC} [directorio_destino]  # Backup sin información sensible"
-    echo -e "  ${GREEN}cursor-restore${NC} [ruta_al_backup.tar.gz]"
+    echo -e "  ${GREEN}cursor-backup${NC} [directorio_destino]                    # Backup completo"
+    echo -e "  ${GREEN}cursor-backup -p${NC} [directorio_destino]                 # Backup público (sin info sensible)"
+    echo -e "  ${GREEN}cursor-backup -r${NC} [archivo_backup.tar.gz]              # Restaurar backup"
     echo ""
     echo -e "Ejemplos:"
-    echo -e "  ${GREEN}cursor-backup${NC}                    # Backup completo en el directorio actual"
-    echo -e "  ${GREEN}cursor-backup-public${NC}             # Backup público (sin datos sensibles)"
-    echo -e "  ${GREEN}cursor-backup ~/Documentos/backups${NC}  # Backup en ubicación personalizada"
-    echo -e "  ${GREEN}cursor-restore ~/cursor_backups/cursor_backup_20241128_120000.tar.gz${NC}"
+    echo -e "  ${GREEN}cursor-backup${NC}                                        # Backup completo en directorio actual"
+    echo -e "  ${GREEN}cursor-backup ~/Documentos/backups${NC}                    # Backup completo (argumento posicional)"
+    echo -e "  ${GREEN}cursor-backup -o ~/Documentos/backups${NC}                 # Backup completo usando flag -o"
+    echo -e "  ${GREEN}cursor-backup -p${NC}                                     # Backup público (sin datos sensibles)"
+    echo -e "  ${GREEN}cursor-backup -p -o ~/backups${NC}                        # Backup público con flag -o"
+    echo -e "  ${GREEN}cursor-backup -r backup.tar.gz${NC}                       # Restaurar backup (argumento posicional)"
+    echo -e "  ${GREEN}cursor-backup -r -f backup.tar.gz${NC}                    # Restaurar backup usando flag -f"
+    echo ""
+    echo -e "Opciones disponibles:"
+    echo -e "  ${GREEN}-h, --help${NC}                    Mostrar ayuda"
+    echo -e "  ${GREEN}-r, --restore${NC}                 Modo restauración"
+    echo -e "  ${GREEN}-p, --public${NC}                   Backup público (sin información sensible)"
+    echo -e "  ${GREEN}-w, --without-sensitive-info${NC}  Backup público (sin información sensible)"
+    echo -e "  ${GREEN}-o, --output DIR${NC}                Directorio de destino para el backup"
+    echo -e "  ${GREEN}-f, --file ARCHIVO${NC}             Archivo de backup para restaurar (solo con -r)"
 else
     echo -e "${YELLOW}⚠${NC} Los comandos están instalados pero no están en tu PATH actual"
     echo -e "${YELLOW}  Cierra y vuelve a abrir la terminal, o ejecuta:${NC}"

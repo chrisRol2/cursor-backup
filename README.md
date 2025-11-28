@@ -4,52 +4,47 @@ Herramientas para hacer backup y restaurar configuraciones y extensiones de Curs
 
 ## 📦 Contenido
 
-- `backup_cursor.sh` - Script para crear backups completos de configuraciones y extensiones
-- `backup_cursor_public.sh` - Script para crear backups públicos (sin información sensible)
-- `restore_cursor.sh` - Script para restaurar desde un backup
-- `install.sh` - Script de instalación para usar los comandos desde cualquier ubicación
+- `cursor-backup` - Script unificado para backup y restauración (comando principal)
+- `backup_cursor.sh` - Script legacy para backup completo
+- `backup_cursor_public.sh` - Script legacy para backup público
+- `restore_cursor.sh` - Script legacy para restauración
+- `install.sh` - Script de instalación para usar el comando desde cualquier ubicación
 - `README.md` - Esta documentación
 
 ## 🔌 Instalación
 
-Para poder usar los comandos `cursor-backup`, `cursor-backup-public` y `cursor-restore` desde cualquier ubicación:
+Para poder usar el comando `cursor-backup` desde cualquier ubicación:
 
 ```bash
 ./install.sh
 ```
 
-Esto creará enlaces simbólicos en `/usr/local/bin` o `~/bin` (según permisos disponibles).
+Esto creará un enlace simbólico en `/usr/local/bin` o `~/bin` (según permisos disponibles).
 
-**Nota importante:** Los enlaces simbólicos apuntan directamente a los archivos originales, por lo que cualquier cambio que hagas en los scripts se reflejará automáticamente al ejecutar los comandos. No necesitas reinstalar después de editar los scripts.
+**Nota importante:** El enlace simbólico apunta directamente al archivo original, por lo que cualquier cambio que hagas en el script se reflejará automáticamente al ejecutar el comando. No necesitas reinstalar después de editar el script.
 
 ## 🚀 Uso Rápido
 
+El comando `cursor-backup` es un comando unificado que maneja todas las operaciones mediante flags:
+
 ### Crear un Backup Completo
 
-**Usando el comando instalado (recomendado):**
 ```bash
-cursor-backup                    # Backup completo en el directorio actual
-cursor-backup ~/Documentos/backups  # Backup en ubicación personalizada
-```
-
-**O ejecutando el script directamente:**
-```bash
-./backup_cursor.sh [directorio_destino]
+cursor-backup                              # Backup completo en el directorio actual
+cursor-backup ~/Documentos/backups         # Backup completo en ubicación personalizada (argumento posicional)
+cursor-backup -o ~/Documentos/backups      # Backup completo usando flag -o/--output
 ```
 
 El backup completo incluye todas las configuraciones y extensiones completas.
 
 ### Crear un Backup Público (Sin Información Sensible)
 
-**Usando el comando instalado:**
 ```bash
-cursor-backup-public                    # Backup público en el directorio actual
-cursor-backup-public ~/Documentos/backups  # Backup público en ubicación personalizada
-```
-
-**O ejecutando el script directamente:**
-```bash
-./backup_cursor_public.sh [directorio_destino]
+cursor-backup -p                           # Backup público en el directorio actual
+cursor-backup -p ~/backups                 # Backup público en ubicación personalizada (argumento posicional)
+cursor-backup -p -o ~/backups              # Backup público usando flag -o/--output
+cursor-backup --public --output ~/backups   # Forma larga de los flags
+cursor-backup -w                           # También funciona con --without-sensitive-info
 ```
 
 El backup público incluye:
@@ -66,15 +61,29 @@ El backup público incluye:
 
 **⚠️ IMPORTANTE: Cierra Cursor completamente antes de restaurar**
 
-**Usando el comando instalado:**
 ```bash
-cursor-restore ~/cursor_backups/cursor_backup_YYYYMMDD_HHMMSS.tar.gz
+cursor-backup -r backup.tar.gz              # Restaurar backup (argumento posicional)
+cursor-backup -r -f backup.tar.gz           # Restaurar backup usando flag -f/--file
+cursor-backup --restore --file backup.tar.gz # Forma larga de los flags
 ```
 
-**O ejecutando el script directamente:**
+### Ver Ayuda
+
 ```bash
-./restore_cursor.sh ~/cursor_backups/cursor_backup_YYYYMMDD_HHMMSS.tar.gz
+cursor-backup -h
+cursor-backup --help
 ```
+
+## 📝 Opciones Disponibles
+
+| Flag corto | Flag largo | Descripción |
+|------------|------------|-------------|
+| `-h` | `--help` | Mostrar ayuda |
+| `-r` | `--restore` | Modo restauración |
+| `-p` | `--public` | Backup público (sin información sensible) |
+| `-w` | `--without-sensitive-info` | Backup público (sin información sensible) |
+| `-o` | `--output DIR` | Especificar directorio de destino para el backup |
+| `-f` | `--file ARCHIVO` | Especificar archivo de backup para restaurar (solo con -r) |
 
 ## 📋 Qué se respalda
 
